@@ -1,5 +1,5 @@
 // ======================
-// 🌱 GAG3 FULL GAME + SHOP
+// 🌱 GAG3 FULL GAME (HOTBAR + SHOP)
 // ======================
 
 // SCENE
@@ -81,12 +81,12 @@ let coins = 50;
 // 🌱 INVENTORY
 // ======================
 const inventory = {
-    basic: 0,
+    basic: 1,
     rare: 0
 };
 
 // ======================
-// 🏪 SHOP UI (CENTER)
+// 🏪 SHOP
 // ======================
 let shopOpen = false;
 
@@ -106,14 +106,13 @@ shop.style.zIndex = "999";
 
 shop.innerHTML = `
 <h2>🌱 SHOP</h2>
-<button id="buyBasic">Basic Seed - 10💰</button><br><br>
-<button id="buyRare">Rare Seed - 25💰</button><br><br>
+<button id="buyBasic">Buy Basic Seed (10💰)</button><br><br>
+<button id="buyRare">Buy Rare Seed (25💰)</button><br><br>
 <p>Press E to close</p>
 `;
 
 document.body.appendChild(shop);
 
-// BUY LOGIC
 document.getElementById("buyBasic").onclick = () => {
     if (coins >= 10) {
         coins -= 10;
@@ -128,16 +127,71 @@ document.getElementById("buyRare").onclick = () => {
     }
 };
 
-// OPEN / CLOSE SHOP
 window.addEventListener("keydown", (e) => {
     if (e.key.toLowerCase() === "e") {
         shopOpen = !shopOpen;
         shop.style.display = shopOpen ? "block" : "none";
 
-        if (shopOpen) {
-            document.exitPointerLock?.();
-        }
+        if (shopOpen) document.exitPointerLock?.();
     }
+});
+
+// ======================
+// 🌱 HOTBAR (ROBLOX STYLE)
+// ======================
+const hotbar = [
+    { name: "basic", color: 0x2ecc71 },
+    { name: "rare", color: 0xffd700 }
+];
+
+let selectedSlot = 0;
+
+const hotbarUI = document.createElement("div");
+hotbarUI.style.position = "absolute";
+hotbarUI.style.bottom = "20px";
+hotbarUI.style.left = "50%";
+hotbarUI.style.transform = "translateX(-50%)";
+hotbarUI.style.display = "flex";
+hotbarUI.style.gap = "10px";
+hotbarUI.style.zIndex = "999";
+
+document.body.appendChild(hotbarUI);
+
+function renderHotbar() {
+    hotbarUI.innerHTML = "";
+
+    hotbar.forEach((item, i) => {
+        const slot = document.createElement("div");
+
+        slot.style.width = "70px";
+        slot.style.height = "70px";
+        slot.style.borderRadius = "10px";
+        slot.style.display = "flex";
+        slot.style.alignItems = "center";
+        slot.style.justifyContent = "center";
+        slot.style.fontWeight = "bold";
+        slot.style.cursor = "pointer";
+
+        slot.style.background = i === selectedSlot ? "#fff" : "rgba(0,0,0,0.4)";
+        slot.style.border = i === selectedSlot ? "3px solid #00ff88" : "2px solid rgba(255,255,255,0.2)";
+
+        slot.innerText = item.name;
+
+        slot.onclick = () => {
+            selectedSlot = i;
+            renderHotbar();
+        };
+
+        hotbarUI.appendChild(slot);
+    });
+}
+
+renderHotbar();
+
+window.addEventListener("keydown", (e) => {
+    if (e.key === "1") selectedSlot = 0;
+    if (e.key === "2") selectedSlot = 1;
+    renderHotbar();
 });
 
 // ======================
@@ -166,35 +220,34 @@ function createPlant(pos, type) {
     plant.userData = {
         growth: 0,
         grown: false,
-        value: value
+        value
     };
 
     scene.add(plant);
     plants.push(plant);
 }
 
-// CLICK TO PLANT
+// click to plant
 window.addEventListener("mousedown", () => {
     if (shopOpen) return;
     if (document.pointerLockElement !== document.body) return;
+
+    const selected = hotbar[selectedSlot];
 
     const dir = new THREE.Vector3();
     camera.getWorldDirection(dir);
 
     const pos = player.position.clone().add(dir.multiplyScalar(5));
 
-    if (inventory.basic > 0) {
-        inventory.basic--;
-        createPlant(pos, "basic");
-    }
-    else if (inventory.rare > 0) {
-        inventory.rare--;
-        createPlant(pos, "rare");
+    // seed check
+    if (inventory[selected.name] > 0) {
+        inventory[selected.name]--;
+        createPlant(pos, selected.name);
     }
 });
 
 // ======================
-// 🌳 TREES
+// TREES
 // ======================
 function spawnTrees() {
     for (let i = 0; i < 40; i++) {
@@ -249,7 +302,7 @@ function move() {
 }
 
 // ======================
-// 🌱 GROWTH + MONEY
+// GROW + MONEY
 // ======================
 function updatePlants() {
 
@@ -257,8 +310,8 @@ function updatePlants() {
 
         p.userData.growth += 0.002;
 
-        const scale = 1 + p.userData.growth * 3;
-        p.scale.set(scale, scale, scale);
+        const s = 1 + p.userData.growth * 3;
+        p.scale.set(s, s, s);
 
         if (!p.userData.grown && p.userData.growth > 1) {
             p.userData.grown = true;
@@ -283,10 +336,9 @@ document.body.appendChild(ui);
 function updateUI() {
     ui.innerHTML = `
         💰 Coins: ${coins}<br>
-        🌱 Basic seeds: ${inventory.basic}<br>
-        🌟 Rare seeds: ${inventory.rare}<br>
-        🌿 Plants: ${plants.length}<br>
-        🎮 Press E for shop
+        🌱 Basic: ${inventory.basic}<br>
+        🌟 Rare: ${inventory.rare}<br>
+        🎮 Shop: E
     `;
 }
 
