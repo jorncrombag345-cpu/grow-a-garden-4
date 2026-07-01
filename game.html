@@ -1,143 +1,29 @@
 <!DOCTYPE html>
 <html lang="nl">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>GAG3</title>
-
-    <style>
-
-        *{
-            margin:0;
-            padding:0;
-            box-sizing:border-box;
-        }
-
-        body{
-
-            overflow:hidden;
-            background:black;
-
-        }
-
-        canvas{
-
-            display:block;
-
-        }
-
-        #loading{
-
-            position:absolute;
-
-            top:50%;
-            left:50%;
-
-            transform:translate(-50%,-50%);
-
-            color:white;
-
-            font-size:35px;
-
-            font-family:Arial;
-
-            text-align:center;
-
-            z-index:5;
-
-        }
-
-        #crosshair{
-
-            position:absolute;
-
-            left:50%;
-            top:50%;
-
-            width:6px;
-            height:6px;
-
-            margin-left:-3px;
-            margin-top:-3px;
-
-            background:white;
-
-            border-radius:50%;
-
-            pointer-events:none;
-
-            display:none;
-
-        }
-
-        #info{
-
-            position:absolute;
-
-            left:20px;
-            top:20px;
-
-            color:white;
-
-            font-family:Arial;
-
-            font-size:18px;
-
-            background:rgba(0,0,0,.4);
-
-            padding:12px;
-
-            border-radius:10px;
-
-        }
-
-    </style>
-
+<meta charset="UTF-8">
+<title>GAG3</title>
+<style>
+body { margin: 0; overflow: hidden; }
+#ui {
+position: absolute;
+top: 10px;
+left: 10px;
+color: white;
+font-family: Arial;
+z-index: 10;
+}
+</style>
 </head>
 
 <body>
 
-<div id="loading">
-
-    🌱 GAG3
-
-    <br><br>
-
-    Klik om te beginnen
-
+<div id="ui">
+WASD = lopen | Muis = kijken | Klik = start
 </div>
 
-<div id="crosshair"></div>
-
-<div id="info">
-
-WASD = Lopen<br>
-Muis = Rondkijken
-
-</div>
-
-<!-- Three.js -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.min.js"></script>
-
-<!-- Game -->
 <script src="game.js"></script>
 
-<script>
-
-document.body.addEventListener("click",()=>{
-
-    document.getElementById("loading").style.display="none";
-
-    document.getElementById("crosshair").style.display="block";
-
-});
-
-</script>
-
 </body>
-
 </html>
