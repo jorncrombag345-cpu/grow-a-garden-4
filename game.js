@@ -1,15 +1,11 @@
 // ======================
-// 🌱 GAG3 - GRAPHICS UPGRADE
+// 🌱 GAG3 FULL GAME + SHOP
 // ======================
 
 // SCENE
 const scene = new THREE.Scene();
-
-// 🌫 fog = diepte (belangrijk voor “AAA look”)
-scene.fog = new THREE.Fog(0xbfe9ff, 30, 180);
-
-// SKY COLOR
 scene.background = new THREE.Color(0xbfe9ff);
+scene.fog = new THREE.Fog(0xbfe9ff, 30, 180);
 
 // CAMERA
 const camera = new THREE.PerspectiveCamera(
@@ -19,47 +15,30 @@ const camera = new THREE.PerspectiveCamera(
     1000
 );
 
-// RENDERER (SHADOWS AAN!)
+// RENDERER
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
-// ======================
-// LIGHTING (NICE SUN)
-// ======================
-const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+// LIGHT
+const sun = new THREE.DirectionalLight(0xffffff, 2);
 sun.position.set(50, 80, 20);
 sun.castShadow = true;
-
-sun.shadow.mapSize.width = 2048;
-sun.shadow.mapSize.height = 2048;
-
 scene.add(sun);
 
-// zachte ambient light
 scene.add(new THREE.AmbientLight(0xffffff, 0.35));
 
-// ======================
-// GROUND (BETERE LOOK)
-// ======================
+// GROUND
 const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(500, 500),
-    new THREE.MeshStandardMaterial({
-        color: 0x3fa34d,
-        roughness: 1,
-        metalness: 0
-    })
+    new THREE.MeshStandardMaterial({ color: 0x3fa34d })
 );
-
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
 
-// ======================
 // PLAYER
-// ======================
 const player = new THREE.Object3D();
 player.position.set(0, 2, 10);
 scene.add(player);
@@ -82,6 +61,7 @@ document.body.addEventListener("click", () => {
 
 window.addEventListener("mousemove", (e) => {
     if (document.pointerLockElement !== document.body) return;
+    if (shopOpen) return;
 
     yaw -= e.movementX * 0.002;
     pitch -= e.movementY * 0.002;
@@ -93,29 +73,143 @@ window.addEventListener("mousemove", (e) => {
 });
 
 // ======================
-// TREES (BETERE GRAPHICS)
+// 💰 COINS
+// ======================
+let coins = 50;
+
+// ======================
+// 🌱 INVENTORY
+// ======================
+const inventory = {
+    basic: 0,
+    rare: 0
+};
+
+// ======================
+// 🏪 SHOP UI (CENTER)
+// ======================
+let shopOpen = false;
+
+const shop = document.createElement("div");
+shop.style.position = "absolute";
+shop.style.top = "50%";
+shop.style.left = "50%";
+shop.style.transform = "translate(-50%, -50%)";
+shop.style.width = "320px";
+shop.style.padding = "20px";
+shop.style.background = "rgba(0,0,0,0.85)";
+shop.style.color = "white";
+shop.style.borderRadius = "15px";
+shop.style.textAlign = "center";
+shop.style.display = "none";
+shop.style.zIndex = "999";
+
+shop.innerHTML = `
+<h2>🌱 SHOP</h2>
+<button id="buyBasic">Basic Seed - 10💰</button><br><br>
+<button id="buyRare">Rare Seed - 25💰</button><br><br>
+<p>Press E to close</p>
+`;
+
+document.body.appendChild(shop);
+
+// BUY LOGIC
+document.getElementById("buyBasic").onclick = () => {
+    if (coins >= 10) {
+        coins -= 10;
+        inventory.basic++;
+    }
+};
+
+document.getElementById("buyRare").onclick = () => {
+    if (coins >= 25) {
+        coins -= 25;
+        inventory.rare++;
+    }
+};
+
+// OPEN / CLOSE SHOP
+window.addEventListener("keydown", (e) => {
+    if (e.key.toLowerCase() === "e") {
+        shopOpen = !shopOpen;
+        shop.style.display = shopOpen ? "block" : "none";
+
+        if (shopOpen) {
+            document.exitPointerLock?.();
+        }
+    }
+});
+
+// ======================
+// 🌱 PLANTS
+// ======================
+const plants = [];
+
+function createPlant(pos, type) {
+
+    let color = 0x2ecc71;
+    let value = 5;
+
+    if (type === "rare") {
+        color = 0xffd700;
+        value = 15;
+    }
+
+    const plant = new THREE.Mesh(
+        new THREE.ConeGeometry(0.5, 1, 12),
+        new THREE.MeshStandardMaterial({ color })
+    );
+
+    plant.position.copy(pos);
+    plant.position.y = 0.5;
+
+    plant.userData = {
+        growth: 0,
+        grown: false,
+        value: value
+    };
+
+    scene.add(plant);
+    plants.push(plant);
+}
+
+// CLICK TO PLANT
+window.addEventListener("mousedown", () => {
+    if (shopOpen) return;
+    if (document.pointerLockElement !== document.body) return;
+
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);
+
+    const pos = player.position.clone().add(dir.multiplyScalar(5));
+
+    if (inventory.basic > 0) {
+        inventory.basic--;
+        createPlant(pos, "basic");
+    }
+    else if (inventory.rare > 0) {
+        inventory.rare--;
+        createPlant(pos, "rare");
+    }
+});
+
+// ======================
+// 🌳 TREES
 // ======================
 function spawnTrees() {
-
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 40; i++) {
 
         const tree = new THREE.Group();
 
-        // trunk (iets realistischer kleur)
         const trunk = new THREE.Mesh(
             new THREE.CylinderGeometry(0.6, 0.8, 5),
             new THREE.MeshStandardMaterial({ color: 0x7a4a1e })
         );
 
-        trunk.castShadow = true;
-
-        // leaves (meer natuurlijke kleur)
         const leaves = new THREE.Mesh(
             new THREE.SphereGeometry(2.5, 16, 16),
             new THREE.MeshStandardMaterial({ color: 0x1f8f3a })
         );
-
-        leaves.castShadow = true;
 
         trunk.position.y = 2.5;
         leaves.position.y = 6;
@@ -134,44 +228,6 @@ function spawnTrees() {
 }
 
 spawnTrees();
-
-// ======================
-// PLANTS
-// ======================
-const plants = [];
-
-function createPlant(pos) {
-
-    const plant = new THREE.Mesh(
-        new THREE.ConeGeometry(0.5, 1, 12),
-        new THREE.MeshStandardMaterial({ color: 0x2ecc71 })
-    );
-
-    plant.position.copy(pos);
-    plant.position.y = 0.5;
-
-    plant.castShadow = true;
-
-    plant.userData = {
-        growth: 0,
-        grown: false
-    };
-
-    scene.add(plant);
-    plants.push(plant);
-}
-
-// click plant
-window.addEventListener("mousedown", () => {
-    if (document.pointerLockElement !== document.body) return;
-
-    const dir = new THREE.Vector3();
-    camera.getWorldDirection(dir);
-
-    const pos = player.position.clone().add(dir.multiplyScalar(5));
-
-    createPlant(pos);
-});
 
 // ======================
 // MOVE
@@ -193,7 +249,7 @@ function move() {
 }
 
 // ======================
-// PLANT GROWTH (VISUAL BETTER)
+// 🌱 GROWTH + MONEY
 // ======================
 function updatePlants() {
 
@@ -204,15 +260,34 @@ function updatePlants() {
         const scale = 1 + p.userData.growth * 3;
         p.scale.set(scale, scale, scale);
 
-        // kleur overgang (mooier gevoel)
-        if (p.userData.growth < 0.5) {
-            p.material.color.set(0x2ecc71);
-        } else {
-            p.material.color.set(0x1e8449);
+        if (!p.userData.grown && p.userData.growth > 1) {
+            p.userData.grown = true;
+            coins += p.userData.value;
         }
-
-        p.userData.grown = p.userData.growth > 1;
     });
+}
+
+// ======================
+// UI
+// ======================
+const ui = document.createElement("div");
+ui.style.position = "absolute";
+ui.style.top = "10px";
+ui.style.left = "10px";
+ui.style.color = "white";
+ui.style.fontSize = "18px";
+ui.style.fontFamily = "Arial";
+ui.style.zIndex = "10";
+document.body.appendChild(ui);
+
+function updateUI() {
+    ui.innerHTML = `
+        💰 Coins: ${coins}<br>
+        🌱 Basic seeds: ${inventory.basic}<br>
+        🌟 Rare seeds: ${inventory.rare}<br>
+        🌿 Plants: ${plants.length}<br>
+        🎮 Press E for shop
+    `;
 }
 
 // ======================
@@ -233,6 +308,7 @@ function animate() {
 
     move();
     updatePlants();
+    updateUI();
 
     renderer.render(scene, camera);
 }
