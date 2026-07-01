@@ -1,13 +1,13 @@
 // ======================
-// 🌱 GAG3 FULL GAME (HOTBAR + SHOP)
+// 🌱 GAG3 FULL FIXED GAME
 // ======================
 
-// SCENE
+// 🔥 SCENE
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xbfe9ff);
 scene.fog = new THREE.Fog(0xbfe9ff, 30, 180);
 
-// CAMERA
+// 🔥 CAMERA
 const camera = new THREE.PerspectiveCamera(
     70,
     window.innerWidth / window.innerHeight,
@@ -15,13 +15,22 @@ const camera = new THREE.PerspectiveCamera(
     1000
 );
 
-// RENDERER
+// 🔥 RENDERER
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
+
+// canvas FIX (belangrijk!)
+renderer.domElement.style.position = "fixed";
+renderer.domElement.style.top = "0";
+renderer.domElement.style.left = "0";
+renderer.domElement.style.zIndex = "1";
+
 document.body.appendChild(renderer.domElement);
 
+// ======================
 // LIGHT
+// ======================
 const sun = new THREE.DirectionalLight(0xffffff, 2);
 sun.position.set(50, 80, 20);
 sun.castShadow = true;
@@ -29,7 +38,9 @@ scene.add(sun);
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.35));
 
+// ======================
 // GROUND
+// ======================
 const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(500, 500),
     new THREE.MeshStandardMaterial({ color: 0x3fa34d })
@@ -38,7 +49,9 @@ ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
 
+// ======================
 // PLAYER
+// ======================
 const player = new THREE.Object3D();
 player.position.set(0, 2, 10);
 scene.add(player);
@@ -60,6 +73,7 @@ document.body.addEventListener("click", () => {
 });
 
 window.addEventListener("mousemove", (e) => {
+
     if (document.pointerLockElement !== document.body) return;
     if (shopOpen) return;
 
@@ -91,23 +105,24 @@ const inventory = {
 let shopOpen = false;
 
 const shop = document.createElement("div");
+
 shop.style.position = "absolute";
 shop.style.top = "50%";
 shop.style.left = "50%";
 shop.style.transform = "translate(-50%, -50%)";
-shop.style.width = "320px";
+shop.style.width = "300px";
 shop.style.padding = "20px";
 shop.style.background = "rgba(0,0,0,0.85)";
 shop.style.color = "white";
 shop.style.borderRadius = "15px";
 shop.style.textAlign = "center";
 shop.style.display = "none";
-shop.style.zIndex = "999";
+shop.style.zIndex = "9999";
 
 shop.innerHTML = `
 <h2>🌱 SHOP</h2>
-<button id="buyBasic">Buy Basic Seed (10💰)</button><br><br>
-<button id="buyRare">Buy Rare Seed (25💰)</button><br><br>
+<button id="buyBasic">Basic Seed - 10💰</button><br><br>
+<button id="buyRare">Rare Seed - 25💰</button><br><br>
 <p>Press E to close</p>
 `;
 
@@ -128,7 +143,9 @@ document.getElementById("buyRare").onclick = () => {
 };
 
 window.addEventListener("keydown", (e) => {
+
     if (e.key.toLowerCase() === "e") {
+
         shopOpen = !shopOpen;
         shop.style.display = shopOpen ? "block" : "none";
 
@@ -137,7 +154,7 @@ window.addEventListener("keydown", (e) => {
 });
 
 // ======================
-// 🌱 HOTBAR (ROBLOX STYLE)
+// 🎮 HOTBAR (FIXED ROBLOX STYLE)
 // ======================
 const hotbar = [
     { name: "basic", color: 0x2ecc71 },
@@ -147,20 +164,23 @@ const hotbar = [
 let selectedSlot = 0;
 
 const hotbarUI = document.createElement("div");
+
 hotbarUI.style.position = "absolute";
 hotbarUI.style.bottom = "20px";
 hotbarUI.style.left = "50%";
 hotbarUI.style.transform = "translateX(-50%)";
 hotbarUI.style.display = "flex";
 hotbarUI.style.gap = "10px";
-hotbarUI.style.zIndex = "999";
+hotbarUI.style.zIndex = "99999";
 
 document.body.appendChild(hotbarUI);
 
 function renderHotbar() {
+
     hotbarUI.innerHTML = "";
 
     hotbar.forEach((item, i) => {
+
         const slot = document.createElement("div");
 
         slot.style.width = "70px";
@@ -171,11 +191,20 @@ function renderHotbar() {
         slot.style.justifyContent = "center";
         slot.style.fontWeight = "bold";
         slot.style.cursor = "pointer";
+        slot.style.userSelect = "none";
 
-        slot.style.background = i === selectedSlot ? "#fff" : "rgba(0,0,0,0.4)";
-        slot.style.border = i === selectedSlot ? "3px solid #00ff88" : "2px solid rgba(255,255,255,0.2)";
+        if (i === selectedSlot) {
+            slot.style.background = "#fff";
+            slot.style.border = "3px solid #00ff88";
+            slot.style.color = "black";
+            slot.style.transform = "scale(1.1)";
+        } else {
+            slot.style.background = "rgba(0,0,0,0.5)";
+            slot.style.border = "2px solid rgba(255,255,255,0.2)";
+            slot.style.color = "white";
+        }
 
-        slot.innerText = item.name;
+        slot.innerText = (i + 1) + " " + item.name;
 
         slot.onclick = () => {
             selectedSlot = i;
@@ -189,8 +218,10 @@ function renderHotbar() {
 renderHotbar();
 
 window.addEventListener("keydown", (e) => {
+
     if (e.key === "1") selectedSlot = 0;
     if (e.key === "2") selectedSlot = 1;
+
     renderHotbar();
 });
 
@@ -227,8 +258,11 @@ function createPlant(pos, type) {
     plants.push(plant);
 }
 
-// click to plant
+// ======================
+// PLANTING
+// ======================
 window.addEventListener("mousedown", () => {
+
     if (shopOpen) return;
     if (document.pointerLockElement !== document.body) return;
 
@@ -239,7 +273,6 @@ window.addEventListener("mousedown", () => {
 
     const pos = player.position.clone().add(dir.multiplyScalar(5));
 
-    // seed check
     if (inventory[selected.name] > 0) {
         inventory[selected.name]--;
         createPlant(pos, selected.name);
@@ -250,6 +283,7 @@ window.addEventListener("mousedown", () => {
 // TREES
 // ======================
 function spawnTrees() {
+
     for (let i = 0; i < 40; i++) {
 
         const tree = new THREE.Group();
@@ -302,7 +336,7 @@ function move() {
 }
 
 // ======================
-// GROW + MONEY
+// GROWTH + MONEY
 // ======================
 function updatePlants() {
 
@@ -324,6 +358,7 @@ function updatePlants() {
 // UI
 // ======================
 const ui = document.createElement("div");
+
 ui.style.position = "absolute";
 ui.style.top = "10px";
 ui.style.left = "10px";
@@ -331,14 +366,17 @@ ui.style.color = "white";
 ui.style.fontSize = "18px";
 ui.style.fontFamily = "Arial";
 ui.style.zIndex = "10";
+
 document.body.appendChild(ui);
 
 function updateUI() {
+
     ui.innerHTML = `
         💰 Coins: ${coins}<br>
         🌱 Basic: ${inventory.basic}<br>
         🌟 Rare: ${inventory.rare}<br>
-        🎮 Shop: E
+        🎮 Shop: E<br>
+        🎮 Hotbar: 1 / 2
     `;
 }
 
@@ -346,8 +384,10 @@ function updateUI() {
 // RESIZE
 // ======================
 window.addEventListener("resize", () => {
+
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
+
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
