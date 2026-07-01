@@ -1,28 +1,45 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="UTF-8">
-<title>GAG3</title>
-<style>
-body { margin: 0; overflow: hidden; }
-#ui {
-position: absolute;
-top: 10px;
-left: 10px;
-color: white;
-font-family: Arial;
-z-index: 10;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAG3 - Game</title>
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* kleine loading hint */
+        #hint {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-family: Arial;
+            font-size: 14px;
+            opacity: 0.7;
+            z-index: 10;
+        }
+    </style>
 </head>
 
 <body>
 
-<div id="ui">
-WASD = lopen | Muis = kijken | Klik = start
+<div id="hint">
+    Klik om te spelen 🎮 (WASD + muis)
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.min.js"></script>
+<!-- THREE.JS -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.160/build/three.min.js"></script>
+
+<!-- JOUW GAME -->
 <script src="game.js"></script>
 
 </body>
