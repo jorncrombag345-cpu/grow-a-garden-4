@@ -5,9 +5,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GAG3 - Grow A Garden 3</title>
 
-    <link rel="stylesheet" href="style.css">
-
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            background: radial-gradient(circle at top, #1f3b2c, #0b1410);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Background glow */
+        #background {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 50% 30%, rgba(0,255,120,0.15), transparent 60%);
+            z-index: -1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeIn 1s ease;
+        }
+
+        h1 {
+            font-size: 64px;
+            font-weight: 900;
+            color: #7CFF9B;
+            text-shadow: 0 0 20px rgba(0,255,120,0.4);
+        }
+
+        p {
+            margin-top: 10px;
+            font-size: 18px;
+            opacity: 0.8;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 250px;
+        }
+
+        button {
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s ease;
+            background: rgba(255,255,255,0.08);
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            background: rgba(124,255,155,0.15);
+            box-shadow: 0 0 20px rgba(124,255,155,0.2);
+        }
+
+        #playButton {
+            background: linear-gradient(135deg, #2cff8f, #1aa85b);
+            color: black;
+            font-weight: 800;
+        }
+
+        #playButton:hover {
+            box-shadow: 0 0 30px rgba(44,255,143,0.5);
+        }
+
+        footer {
+            position: absolute;
+            bottom: 20px;
+            font-size: 12px;
+            opacity: 0.5;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
 </head>
 
 <body>
@@ -15,50 +109,40 @@
 <div id="background"></div>
 
 <header>
-
     <h1>🌱 GAG3</h1>
-
-    <p>
-        Plant...
-        Groei...
-        Verdien...
-        Word de rijkste tuinier!
-    </p>
-
+    <p>Plant • Groei • Verdien • Word de rijkste tuinier</p>
 </header>
 
 <div class="menu">
-
-    <button id="playButton">
-        ▶ PLAY
-    </button>
-
-    <button>
-        ⚙ SETTINGS
-    </button>
-
-    <button>
-        📖 HOW TO PLAY
-    </button>
-
+    <button id="playButton">▶ PLAY</button>
+    <button onclick="alert('Settings komt later 😉')">⚙ SETTINGS</button>
+    <button onclick="alert('Leg ik straks uit in game 😎')">📖 HOW TO PLAY</button>
 </div>
 
 <footer>
-
     GAG3 © 2026
-
 </footer>
 
 <script>
+    const playButton = document.getElementById("playButton");
 
-const playButton = document.getElementById("playButton");
+    playButton.addEventListener("click", () => {
+        playButton.innerText = "Loading...";
+        playButton.style.opacity = "0.7";
 
-playButton.addEventListener("click", ()=>{
+        setTimeout(() => {
+            window.location.href = "game.html";
+        }, 600);
+    });
 
-    window.location.href="game.html";
+    // kleine background movement effect
+    document.addEventListener("mousemove", (e) => {
+        const bg = document.getElementById("background");
+        const x = (e.clientX / window.innerWidth - 0.5) * 20;
+        const y = (e.clientY / window.innerHeight - 0.5) * 20;
 
-});
-
+        bg.style.transform = `translate(${x}px, ${y}px)`;
+    });
 </script>
 
 </body>
