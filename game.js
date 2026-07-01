@@ -1,3 +1,8 @@
+
+// ======================
+// GAG3 CLEAN BASE GAME
+// ======================
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
 
@@ -14,14 +19,14 @@ document.body.appendChild(renderer.domElement);
 
 // LIGHT
 const light = new THREE.DirectionalLight(0xffffff, 2);
-light.position.set(10, 20, 10);
+light.position.set(20, 40, 20);
 scene.add(light);
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
 // GROUND
 const ground = new THREE.Mesh(
-new THREE.PlaneGeometry(200, 200),
+new THREE.PlaneGeometry(300, 300),
 new THREE.MeshStandardMaterial({ color: 0x4caf50 })
 );
 ground.rotation.x = -Math.PI / 2;
@@ -37,16 +42,17 @@ player.add(camera);
 const keys = {};
 let yaw = 0;
 let pitch = 0;
+const speed = 0.2;
 
 window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
 window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-renderer.domElement.addEventListener("click", () => {
-renderer.domElement.requestPointerLock();
+document.body.addEventListener("click", () => {
+document.body.requestPointerLock();
 });
 
 window.addEventListener("mousemove", (e) => {
-if (document.pointerLockElement !== renderer.domElement) return;
+if (document.pointerLockElement !== document.body) return;
 
 yaw -= e.movementX * 0.002;
 pitch -= e.movementY * 0.002;
@@ -57,8 +63,43 @@ player.rotation.y = yaw;
 camera.rotation.x = pitch;
 });
 
+// TREES
+function spawnTrees() {
+for (let i = 0; i < 25; i++) {
+
+const tree = new THREE.Group();
+
+const trunk = new THREE.Mesh(
+new THREE.CylinderGeometry(0.5, 0.7, 4),
+new THREE.MeshStandardMaterial({ color: 0x8b5a2b })
+);
+
+const leaves = new THREE.Mesh(
+new THREE.SphereGeometry(2),
+new THREE.MeshStandardMaterial({ color: 0x2e8b57 })
+);
+
+trunk.position.y = 2;
+leaves.position.y = 5;
+
+tree.add(trunk);
+tree.add(leaves);
+
+tree.position.set(
+(Math.random() - 0.5) * 200,
+0,
+(Math.random() - 0.5) * 200
+);
+
+scene.add(tree);
+}
+}
+
+spawnTrees();
+
 // MOVE
 function move() {
+
 const dir = new THREE.Vector3();
 player.getWorldDirection(dir);
 dir.y = 0;
@@ -67,10 +108,11 @@ dir.normalize();
 const right = new THREE.Vector3();
 right.crossVectors(dir, new THREE.Vector3(0,1,0));
 
-if (keys["w"]) player.position.addScaledVector(dir, 0.2);
-if (keys["s"]) player.position.addScaledVector(dir, -0.2);
-if (keys["a"]) player.position.addScaledVector(right, 0.2);
-if (keys["d"]) player.position.addScaledVector(right, -0.2);
+if (keys["w"]) player.position.addScaledVector(dir, speed);
+if (keys["s"]) player.position.addScaledVector(dir, -speed);
+if (keys["a"]) player.position.addScaledVector(right, speed);
+if (keys["d"]) player.position.addScaledVector(right, -speed);
+
 }
 
 // RESIZE
