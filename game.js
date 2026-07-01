@@ -1,62 +1,69 @@
 // ======================
-// 🌱 GAG3 - FIXED SPAWN VERSION
+// 🌱 GAG3 - GRAPHICS UPGRADE
 // ======================
 
 // SCENE
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb);
+
+// 🌫 fog = diepte (belangrijk voor “AAA look”)
+scene.fog = new THREE.Fog(0xbfe9ff, 30, 180);
+
+// SKY COLOR
+scene.background = new THREE.Color(0xbfe9ff);
 
 // CAMERA
 const camera = new THREE.PerspectiveCamera(
-    75,
+    70,
     window.innerWidth / window.innerHeight,
     0.1,
     1000
 );
 
-// RENDERER
+// RENDERER (SHADOWS AAN!)
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.body.appendChild(renderer.domElement);
 
-// LIGHT (belangrijk tegen wit scherm)
-const sun = new THREE.DirectionalLight(0xffffff, 2);
-sun.position.set(30, 50, 20);
+// ======================
+// LIGHTING (NICE SUN)
+// ======================
+const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+sun.position.set(50, 80, 20);
+sun.castShadow = true;
+
+sun.shadow.mapSize.width = 2048;
+sun.shadow.mapSize.height = 2048;
+
 scene.add(sun);
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+// zachte ambient light
+scene.add(new THREE.AmbientLight(0xffffff, 0.35));
 
 // ======================
-// 🌍 SPAWN MAP (GARDEN AREA)
+// GROUND (BETERE LOOK)
 // ======================
-
-// GROND
 const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(400, 400),
-    new THREE.MeshStandardMaterial({ color: 0x3fa34d })
+    new THREE.PlaneGeometry(500, 500),
+    new THREE.MeshStandardMaterial({
+        color: 0x3fa34d,
+        roughness: 1,
+        metalness: 0
+    })
 );
+
 ground.rotation.x = -Math.PI / 2;
+ground.receiveShadow = true;
 scene.add(ground);
 
-// PAD / TUIN ZONE VISUAL
-const garden = new THREE.Mesh(
-    new THREE.PlaneGeometry(80, 80),
-    new THREE.MeshStandardMaterial({ color: 0x5fd36b })
-);
-garden.rotation.x = -Math.PI / 2;
-garden.position.y = 0.01;
-scene.add(garden);
-
 // ======================
-// PLAYER (SPAWN POINT)
+// PLAYER
 // ======================
 const player = new THREE.Object3D();
-player.position.set(0, 2, 10); // 👈 SPAWN HIER
+player.position.set(0, 2, 10);
 scene.add(player);
 player.add(camera);
-
-// camera start iets naar beneden kijken
-camera.rotation.x = -0.2;
 
 // ======================
 // INPUT
@@ -86,20 +93,69 @@ window.addEventListener("mousemove", (e) => {
 });
 
 // ======================
+// TREES (BETERE GRAPHICS)
+// ======================
+function spawnTrees() {
+
+    for (let i = 0; i < 50; i++) {
+
+        const tree = new THREE.Group();
+
+        // trunk (iets realistischer kleur)
+        const trunk = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.6, 0.8, 5),
+            new THREE.MeshStandardMaterial({ color: 0x7a4a1e })
+        );
+
+        trunk.castShadow = true;
+
+        // leaves (meer natuurlijke kleur)
+        const leaves = new THREE.Mesh(
+            new THREE.SphereGeometry(2.5, 16, 16),
+            new THREE.MeshStandardMaterial({ color: 0x1f8f3a })
+        );
+
+        leaves.castShadow = true;
+
+        trunk.position.y = 2.5;
+        leaves.position.y = 6;
+
+        tree.add(trunk);
+        tree.add(leaves);
+
+        tree.position.set(
+            (Math.random() - 0.5) * 400,
+            0,
+            (Math.random() - 0.5) * 400
+        );
+
+        scene.add(tree);
+    }
+}
+
+spawnTrees();
+
+// ======================
 // PLANTS
 // ======================
 const plants = [];
 
 function createPlant(pos) {
+
     const plant = new THREE.Mesh(
-        new THREE.ConeGeometry(0.5, 1, 8),
+        new THREE.ConeGeometry(0.5, 1, 12),
         new THREE.MeshStandardMaterial({ color: 0x2ecc71 })
     );
 
     plant.position.copy(pos);
     plant.position.y = 0.5;
 
-    plant.userData = { growth: 0, grown: false };
+    plant.castShadow = true;
+
+    plant.userData = {
+        growth: 0,
+        grown: false
+    };
 
     scene.add(plant);
     plants.push(plant);
@@ -116,42 +172,6 @@ window.addEventListener("mousedown", () => {
 
     createPlant(pos);
 });
-
-// ======================
-// TREES (DECOR MAP)
-// ======================
-function spawnTrees() {
-    for (let i = 0; i < 40; i++) {
-
-        const tree = new THREE.Group();
-
-        const trunk = new THREE.Mesh(
-            new THREE.CylinderGeometry(0.5, 0.7, 4),
-            new THREE.MeshStandardMaterial({ color: 0x8b5a2b })
-        );
-
-        const leaves = new THREE.Mesh(
-            new THREE.SphereGeometry(2),
-            new THREE.MeshStandardMaterial({ color: 0x1f7a3a })
-        );
-
-        trunk.position.y = 2;
-        leaves.position.y = 5;
-
-        tree.add(trunk);
-        tree.add(leaves);
-
-        tree.position.set(
-            (Math.random() - 0.5) * 300,
-            0,
-            (Math.random() - 0.5) * 300
-        );
-
-        scene.add(tree);
-    }
-}
-
-spawnTrees();
 
 // ======================
 // MOVE
@@ -173,7 +193,7 @@ function move() {
 }
 
 // ======================
-// UPDATE PLANTS
+// PLANT GROWTH (VISUAL BETTER)
 // ======================
 function updatePlants() {
 
@@ -184,14 +204,19 @@ function updatePlants() {
         const scale = 1 + p.userData.growth * 3;
         p.scale.set(scale, scale, scale);
 
-        if (p.userData.growth > 1) {
+        // kleur overgang (mooier gevoel)
+        if (p.userData.growth < 0.5) {
+            p.material.color.set(0x2ecc71);
+        } else {
             p.material.color.set(0x1e8449);
         }
+
+        p.userData.grown = p.userData.growth > 1;
     });
 }
 
 // ======================
-// RESIZE FIX
+// RESIZE
 // ======================
 window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -203,6 +228,7 @@ window.addEventListener("resize", () => {
 // LOOP
 // ======================
 function animate() {
+
     requestAnimationFrame(animate);
 
     move();
