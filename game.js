@@ -1,12 +1,12 @@
 // ======================
-// 🌱 GAG3 - FULL GAME CORE
+// 🌱 GAG3 - FIXED SPAWN VERSION
 // ======================
 
-// ---------- SCENE ----------
+// SCENE
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
 
-// ---------- CAMERA ----------
+// CAMERA
 const camera = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
@@ -14,33 +14,53 @@ const camera = new THREE.PerspectiveCamera(
     1000
 );
 
-// ---------- RENDERER ----------
+// RENDERER
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// ---------- LIGHT ----------
-const light = new THREE.DirectionalLight(0xffffff, 2);
-light.position.set(20, 40, 20);
-scene.add(light);
+// LIGHT (belangrijk tegen wit scherm)
+const sun = new THREE.DirectionalLight(0xffffff, 2);
+sun.position.set(30, 50, 20);
+scene.add(sun);
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
-// ---------- GROUND ----------
+// ======================
+// 🌍 SPAWN MAP (GARDEN AREA)
+// ======================
+
+// GROND
 const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(300, 300),
+    new THREE.PlaneGeometry(400, 400),
     new THREE.MeshStandardMaterial({ color: 0x3fa34d })
 );
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
-// ---------- PLAYER ----------
+// PAD / TUIN ZONE VISUAL
+const garden = new THREE.Mesh(
+    new THREE.PlaneGeometry(80, 80),
+    new THREE.MeshStandardMaterial({ color: 0x5fd36b })
+);
+garden.rotation.x = -Math.PI / 2;
+garden.position.y = 0.01;
+scene.add(garden);
+
+// ======================
+// PLAYER (SPAWN POINT)
+// ======================
 const player = new THREE.Object3D();
-player.position.set(0, 2, 5);
+player.position.set(0, 2, 10); // 👈 SPAWN HIER
 scene.add(player);
 player.add(camera);
 
-// ---------- INPUT ----------
+// camera start iets naar beneden kijken
+camera.rotation.x = -0.2;
+
+// ======================
+// INPUT
+// ======================
 const keys = {};
 let yaw = 0;
 let pitch = 0;
@@ -49,54 +69,43 @@ const speed = 0.25;
 window.addEventListener("keydown", e => keys[e.key.toLowerCase()] = true);
 window.addEventListener("keyup", e => keys[e.key.toLowerCase()] = false);
 
-// pointer lock
 document.body.addEventListener("click", () => {
     document.body.requestPointerLock();
 });
 
-// mouse look
 window.addEventListener("mousemove", (e) => {
     if (document.pointerLockElement !== document.body) return;
 
     yaw -= e.movementX * 0.002;
     pitch -= e.movementY * 0.002;
 
-    pitch = Math.max(-1.5, Math.min(1.5, pitch));
+    pitch = Math.max(-1.2, Math.min(1.2, pitch));
 
     player.rotation.y = yaw;
     camera.rotation.x = pitch;
 });
 
-// ---------- COINS ----------
-let coins = 0;
-
-function addCoins(amount) {
-    coins += amount;
-}
-
-// ---------- PLANTS ----------
+// ======================
+// PLANTS
+// ======================
 const plants = [];
 
-function createPlant(position) {
+function createPlant(pos) {
     const plant = new THREE.Mesh(
         new THREE.ConeGeometry(0.5, 1, 8),
         new THREE.MeshStandardMaterial({ color: 0x2ecc71 })
     );
 
-    plant.position.copy(position);
+    plant.position.copy(pos);
     plant.position.y = 0.5;
 
-    plant.userData = {
-        growth: 0,
-        grown: false,
-        value: 5
-    };
+    plant.userData = { growth: 0, grown: false };
 
     scene.add(plant);
     plants.push(plant);
 }
 
-// ---------- CLICK TO PLANT ----------
+// click plant
 window.addEventListener("mousedown", () => {
     if (document.pointerLockElement !== document.body) return;
 
@@ -108,9 +117,11 @@ window.addEventListener("mousedown", () => {
     createPlant(pos);
 });
 
-// ---------- TREES ----------
+// ======================
+// TREES (DECOR MAP)
+// ======================
 function spawnTrees() {
-    for (let i = 0; i < 25; i++) {
+    for (let i = 0; i < 40; i++) {
 
         const tree = new THREE.Group();
 
@@ -131,9 +142,9 @@ function spawnTrees() {
         tree.add(leaves);
 
         tree.position.set(
-            (Math.random() - 0.5) * 200,
+            (Math.random() - 0.5) * 300,
             0,
-            (Math.random() - 0.5) * 200
+            (Math.random() - 0.5) * 300
         );
 
         scene.add(tree);
@@ -142,7 +153,9 @@ function spawnTrees() {
 
 spawnTrees();
 
-// ---------- MOVEMENT ----------
+// ======================
+// MOVE
+// ======================
 function move() {
 
     const dir = new THREE.Vector3();
@@ -159,7 +172,9 @@ function move() {
     if (keys["d"]) player.position.addScaledVector(right, -speed);
 }
 
-// ---------- PLANT GROWTH ----------
+// ======================
+// UPDATE PLANTS
+// ======================
 function updatePlants() {
 
     plants.forEach(p => {
@@ -169,48 +184,29 @@ function updatePlants() {
         const scale = 1 + p.userData.growth * 3;
         p.scale.set(scale, scale, scale);
 
-        if (!p.userData.grown && p.userData.growth >= 1) {
-            p.userData.grown = true;
+        if (p.userData.growth > 1) {
             p.material.color.set(0x1e8449);
-
-            addCoins(p.userData.value);
         }
     });
 }
 
-// ---------- UI ----------
-const ui = document.createElement("div");
-ui.style.position = "absolute";
-ui.style.top = "10px";
-ui.style.left = "10px";
-ui.style.color = "white";
-ui.style.fontFamily = "Arial";
-ui.style.fontSize = "18px";
-ui.style.zIndex = "10";
-document.body.appendChild(ui);
-
-function updateUI() {
-    ui.innerHTML = `
-        🌱 GAG3<br>
-        💰 Coins: ${coins}<br>
-        🌿 Plants: ${plants.length}
-    `;
-}
-
-// ---------- RESIZE ----------
+// ======================
+// RESIZE FIX
+// ======================
 window.addEventListener("resize", () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// ---------- LOOP ----------
+// ======================
+// LOOP
+// ======================
 function animate() {
     requestAnimationFrame(animate);
 
     move();
     updatePlants();
-    updateUI();
 
     renderer.render(scene, camera);
 }
